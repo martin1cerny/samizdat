@@ -2,7 +2,7 @@
 
 Interaktivní rozhodovací příběh o samizdatu pro studenty gymnázia. Hráč je sedmnáctiletý student, kterému soused v listopadu 1980 půjčí zakázaný strojopis Orwellova románu *1984*. Rozhoduje, jestli knihu vezme, opíše, půjčí dál a co řekne při výslechu.
 
-**Hrát online:** `https://<uzivatel>.github.io/<repozitar>/`
+**Hrát online:** `https://<uzivatel>.github.io/<repozitar>/pribeh.html` (rozcestník všech aktivit je na `https://<uzivatel>.github.io/<repozitar>/`)
 
 Příběh vznikl jako jedna z úvodních aktivit školního projektu k nedožitým 90. narozeninám Václava Havla, ve kterém studenti modelují šíření samizdatu v Insight Makeru.
 
@@ -37,7 +37,7 @@ Postavy jsou smyšlené. Historické poznámky popisují, jak podobné situace v
 
 ## Úprava příběhu
 
-Celá hra je jeden soubor `index.html` bez závislostí (kromě písem z Google Fonts). Obsah je v JavaScriptu na konci souboru:
+Celá hra je jeden soubor `pribeh.html` bez závislostí (kromě písem z Google Fonts). Obsah je v JavaScriptu na konci souboru:
 
 - `ENDINGS` – názvy konců (klíč → název).
 - `S` – scény. Každá scéna má `place`, `text` (pole odstavců), volitelně `quote` a `choices`.
@@ -48,7 +48,7 @@ Nový konec přidáte tak, že ho zapíšete do `ENDINGS` i do `S` a odkážete 
 
 ## Hosting na GitHub Pages
 
-1. Nahrajte `index.html` (a tento `README.md`) do kořene repozitáře.
+1. Do kořene repozitáře nahrajte `index.html` (rozcestník aktivit), `pribeh.html` (tato hra) a tento `README.md`. Odkazy a kód lekce pro bota se mění v poli `ACTIVITIES` na konci `index.html`.
 2. V **Settings → Pages** zvolte *Deploy from a branch*, větev `main`, složku `/ (root)`.
 3. Po minutě je stránka dostupná na `https://<uzivatel>.github.io/<repozitar>/`.
 
