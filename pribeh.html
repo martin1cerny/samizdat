@@ -1,6 +1,9 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Půjčená kniha, 1980</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Barlow+Condensed:wght@500;600;700&display=swap">
@@ -79,6 +82,9 @@ footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule)
 @media (max-width: 420px) { .meter .val { font-size: 24px; } .pip { width: 11px; height: 11px; } }
 </style>
 
+<style>*{box-sizing:border-box}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
 <div class="wrap">
   <header>
     <span class="eyebrow">Rozhodovací příběh · samizdat</span>
@@ -361,7 +367,30 @@ function restart() {
   render();
 }
 
+// Režim prezentace pro interaktivní panel: ?prezentace=true
+// Po 5 minutách bez dotyku se hra vrátí na začátek a vymažou se objevené konce.
+const IDLE_MS = 5 * 60 * 1000;
+let presentation = false;
+try { presentation = new URLSearchParams(location.search).get("prezentace") === "true"; } catch (e) {}
+
+if (presentation) {
+  found = new Set();
+  try { localStorage.removeItem("samizdat-endings"); } catch (e) {}
+  let idleTimer;
+  const resetAll = () => {
+    found = new Set();
+    try { localStorage.removeItem("samizdat-endings"); } catch (e) {}
+    restart();
+    window.scrollTo(0, 0);
+  };
+  const touch = () => { clearTimeout(idleTimer); idleTimer = setTimeout(resetAll, IDLE_MS); };
+  ["pointerdown", "keydown", "wheel", "touchstart", "scroll"].forEach(ev =>
+    window.addEventListener(ev, touch, { passive: true }));
+  touch();
+}
+
 render();
 </script>
 
-</body></html>
+</body>
+</html>
