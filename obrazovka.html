@@ -77,6 +77,9 @@ button:focus-visible { outline: 4px solid var(--carbon); outline-offset: 2px; }
 .empty { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 40px; color: var(--muted); }
 
 /* Výzva při nečinnosti */
+.main { position: relative; }
+.toast { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: 20; background: var(--ink); color: var(--paper);
+  padding: 14px 24px; font-size: 18px; box-shadow: 0 6px 20px rgba(0,0,0,.25); pointer-events: none; }
 .idle { position: absolute; inset: 0; z-index: 50; background: rgba(31, 34, 48, .82); display: flex; align-items: center; justify-content: center; }
 .idle-card { background: var(--paper); padding: 44px 56px; max-width: 640px; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
 .idle-card h2 { font-family: var(--display); font-weight: 700; font-size: 48px; margin: 0; }
@@ -141,7 +144,9 @@ button:focus-visible { outline: 4px solid var(--carbon); outline-offset: 2px; }
         <button id="model-reload">Obnovit model</button>
       </div>
       <div class="empty" id="empty">Vyber vlevo třídu a skupinu.<br>Simulaci spustíš tlačítkem „Run Simulation“ v horní liště modelu.</div>
-      <iframe class="frame" id="model-frame" title="Model studentů" hidden></iframe>
+      <iframe class="frame" id="model-frame" title="Model studentů" hidden
+        sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+      <div class="toast" id="toast" hidden>Odkazy mimo model jsou na této obrazovce vypnuté.</div>
     </div>
   </div>
 </section>
@@ -330,8 +335,23 @@ function renderModels() {
        <b>${esc(g.name)}</b><span>${esc(g.members)}</span></button>`).join("");
 }
 
+/* Odkazy uvnitř modelu: sandbox na iframu blokuje nová okna a přechod celé stránky jinam.
+   Odkaz, který otevře jinou stránku přímo v iframu, poznáme podle dalšího „load“ a model načteme znovu.
+   Druhé načtení do 4 s od prvního bereme jako přesměrování při startu modelu, ne jako kliknutí. */
+let modelLoads = 0, firstLoadAt = 0, toastTimer = null;
+$("model-frame").addEventListener("load", () => {
+  if (!currentModel || $("model-frame").hidden) return;
+  modelLoads++;
+  if (modelLoads === 1) { firstLoadAt = Date.now(); return; }
+  if (Date.now() - firstLoadAt < 4000) return;
+  $("toast").hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $("toast").hidden = true, 3500);
+  openModel(currentModel);
+});
+
 function openModel(g) {
   currentModel = g;
+  modelLoads = 0;
   $("model-frame").src = embedUrl(g.id);
   $("model-frame").hidden = false; $("empty").hidden = true; $("hint").hidden = false;
   $("who").innerHTML = `<b>${esc(CLASSES[currentClass].cls)} · ${esc(g.name)}</b>${esc(g.members)}`;
