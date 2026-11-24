@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Samizdat – Havel 90</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* Kiosk pro dotykovou obrazovku: úvodní obálka se dvěma volbami, horní lišta s tlačítkem Domů, obsah v iframech.
+   Jeden světlý vzhled (průklepový papír a fialový kopírák), velké dotykové plochy. */
+:root {
+  --desk: #dfe3e1; --paper: #f7f8f3; --ink: #1f2230; --carbon: #3f3a86; --carbon-soft: #e6e4f3;
+  --muted: #5d6270; --rule: #c9cdd2;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --type: "Courier Prime", "Courier New", Courier, monospace;
+  --bar: 76px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--desk); color: var(--ink); font-family: var(--type); font-size: 20px; line-height: 1.5;
+  overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 4px solid var(--carbon); outline-offset: 2px; }
+[hidden] { display: none !important; }
+
+.view { position: absolute; inset: 0; display: flex; flex-direction: column; }
+
+/* Obálka */
+#home { justify-content: center; align-items: center; padding: 48px; gap: 48px; }
+.cover { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; max-width: 1100px; }
+.eyebrow { font-family: var(--display); font-weight: 600; letter-spacing: .16em; text-transform: uppercase; font-size: 22px; color: var(--carbon); }
+.cover h1 { font-family: var(--display); font-weight: 700; font-size: clamp(56px, 8vw, 112px); line-height: .95; margin: 0; }
+.cover p { margin: 6px 0 0; max-width: 60ch; color: var(--muted); font-size: 21px; }
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 420px)); gap: 32px; }
+.choice { background: var(--paper); border: 2px solid var(--ink); padding: 30px 32px; text-align: left; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 6px 6px 0 -2px var(--paper), 6px 6px 0 0 var(--ink); transition: transform .12s ease; }
+.choice:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 -2px var(--paper), 2px 2px 0 0 var(--ink); }
+.choice .k { font-family: var(--display); font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: 18px; color: var(--carbon); }
+.choice h2 { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; margin: 0; }
+.choice p { margin: 0; font-size: 18px; color: var(--muted); }
+.choice .go { margin-top: 8px; font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .06em; text-transform: uppercase; }
+.touch { font-size: 17px; color: var(--muted); }
+
+/* Horní lišta */
+.bar { height: var(--bar); flex: none; display: flex; align-items: center; gap: 20px; padding: 0 20px; background: var(--ink); color: var(--paper); }
+.home-btn { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px; background: var(--paper); color: var(--ink); border: 0;
+  font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: .06em; text-transform: uppercase; }
+.home-btn svg { width: 26px; height: 26px; }
+.bar h2 { font-family: var(--display); font-weight: 600; font-size: 28px; margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar .ghost { height: 52px; padding: 0 18px; background: transparent; border: 2px solid var(--paper); color: var(--paper);
+  font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: .06em; text-transform: uppercase; }
+
+.frame { flex: 1; min-height: 0; border: 0; width: 100%; background: #fff; display: block; }
+
+/* Modely */
+.models { flex: 1; min-height: 0; display: grid; grid-template-columns: 380px minmax(0, 1fr); }
+.side { background: var(--paper); border-right: 1px solid var(--rule); display: flex; flex-direction: column; min-height: 0; }
+.tabs { display: flex; gap: 8px; padding: 16px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+.tab { flex: 1; min-width: 80px; height: 56px; background: transparent; border: 2px solid var(--ink);
+  font-family: var(--display); font-weight: 700; font-size: 24px; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--paper); }
+.groups { flex: 1; overflow-y: auto; padding: 12px 16px 24px; display: flex; flex-direction: column; gap: 10px; overscroll-behavior: contain; }
+.group { text-align: left; background: transparent; border: 1px solid var(--rule); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.group b { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .02em; }
+.group span { font-size: 16px; color: var(--muted); line-height: 1.35; }
+.group[aria-current="true"] { border: 2px solid var(--carbon); background: var(--carbon-soft); }
+.group[aria-current="true"] b { color: var(--carbon); }
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.hint { flex: none; display: flex; align-items: center; gap: 16px; padding: 10px 20px; background: var(--paper); border-bottom: 1px solid var(--rule); font-size: 17px; }
+.hint .who { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hint .who b { font-family: var(--display); font-size: 22px; margin-right: 8px; }
+.hint button { height: 46px; padding: 0 16px; background: transparent; border: 2px solid var(--ink);
+  font-family: var(--display); font-weight: 600; font-size: 18px; letter-spacing: .06em; text-transform: uppercase; }
+.empty { flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 40px; color: var(--muted); }
+
+/* Výzva při nečinnosti */
+.idle { position: absolute; inset: 0; z-index: 50; background: rgba(31, 34, 48, .82); display: flex; align-items: center; justify-content: center; }
+.idle-card { background: var(--paper); padding: 44px 56px; max-width: 640px; text-align: center; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.idle-card h2 { font-family: var(--display); font-weight: 700; font-size: 48px; margin: 0; }
+.idle-card p { margin: 0; color: var(--muted); }
+.idle-card .n { font-family: var(--display); font-weight: 700; font-size: 72px; color: var(--carbon); font-variant-numeric: tabular-nums; line-height: 1; }
+.idle-card button { margin-top: 8px; height: 64px; padding: 0 32px; background: var(--ink); color: var(--paper); border: 0;
+  font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .06em; text-transform: uppercase; }
+
+@media (max-width: 900px) {
+  .choices { grid-template-columns: 1fr; }
+  .models { grid-template-columns: 260px minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<section class="view" id="home">
+  <div class="cover">
+    <span class="eyebrow">Václav Havel 90 · projekt studentů gymnázia</span>
+    <h1>Jak se šířil samizdat</h1>
+    <p>Za normalizace se zakázané texty opisovaly na psacím stroji a předávaly z ruky do ruky. Studenti zkoumali, co šíření pomáhalo a co ho brzdilo, a postavili o tom počítačové modely.</p>
+  </div>
+  <div class="choices">
+    <button class="choice" id="go-game">
+      <span class="k">Příběh · 5 minut</span>
+      <h2>Půjčená kniha, 1980</h2>
+      <p>Soused ti půjčí zakázaný strojopis. Co uděláš? Sedm různých konců.</p>
+      <span class="go">Hrát →</span>
+    </button>
+    <button class="choice" id="go-models">
+      <span class="k">Simulace studentů</span>
+      <h2>Modely šíření</h2>
+      <p id="models-count">Vyzkoušej simulace, které postavili studenti v InsightMakeru.</p>
+      <span class="go">Prozkoumat →</span>
+    </button>
+  </div>
+  <span class="touch">Dotkni se jedné z možností</span>
+</section>
+
+<section class="view" id="game" hidden>
+  <div class="bar">
+    <button class="home-btn" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3z"/></svg>Domů</button>
+    <h2>Půjčená kniha, 1980</h2>
+    <button class="ghost" id="game-restart">Začít znovu</button>
+  </div>
+  <iframe class="frame" id="game-frame" title="Půjčená kniha, 1980"></iframe>
+</section>
+
+<section class="view" id="models" hidden>
+  <div class="bar">
+    <button class="home-btn" data-home><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"><path d="M3 11 12 3l9 8v10h-6v-6H9v6H3z"/></svg>Domů</button>
+    <h2>Modely šíření samizdatu</h2>
+  </div>
+  <div class="models">
+    <aside class="side">
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div class="groups" id="groups"></div>
+    </aside>
+    <div class="main">
+      <div class="hint" id="hint" hidden>
+        <span class="who" id="who"></span>
+        <button id="model-reload">Obnovit model</button>
+      </div>
+      <div class="empty" id="empty">Vyber vlevo třídu a skupinu.<br>Simulaci spustíš tlačítkem „Run Simulation“ v horní liště modelu.</div>
+      <iframe class="frame" id="model-frame" title="Model studentů" hidden></iframe>
+    </div>
+  </div>
+</section>
+
+<div class="idle" id="idle" hidden>
+  <div class="idle-card">
+    <h2>Je tu ještě někdo?</h2>
+    <p>Za chvíli se obrazovka vrátí na úvod.</p>
+    <span class="n" id="idle-n">30</span>
+    <button id="idle-stay">Pokračovat</button>
+  </div>
+</div>
+
+<script>
+// Data vkládá generuj_obrazovku.py z tabulky odpovědí.
+const CLASSES = [
+ {
+  "cls": "2.B",
+  "groups": [
+   {
+    "id": "5iggdlYLsMhzhwuGLa1Eyu",
+    "cls": "2.B",
+    "members": "Mária Urbánková, Eliška Sommerová",
+    "name": "Skupina 1"
+   },
+   {
+    "id": "6V4pAi9V5ixkqCnN5JVPo8",
+    "cls": "2.B",
+    "members": "Martin Brázda, Petr Schmidt, Josef Holemář",
+    "name": "Skupina 2"
+   },
+   {
+    "id": "2X4jvqPMheDp0riAMwtKWT",
+    "cls": "2.B",
+    "members": "Karolína Hocková, Martina Čtveráková, Tereza Kulhánková",
+    "name": "Skupina 3"
+   },
+   {
+    "id": "1ANS0RcN19PIxad3b6AnEJ",
+    "cls": "2.B",
+    "members": "Jakub Štěch a Lukáš Skřička",
+    "name": "Skupina 4"
+   },
+   {
+    "id": "yuUEBDXOcvdaZM1nX7oKJ",
+    "cls": "2.B",
+    "members": "Anna Brožová, Karolína Jonáková, Julie Karasková",
+    "name": "Skupina 5"
+   }
+  ]
+ },
+ {
+  "cls": "3.A",
+  "groups": [
+   {
+    "id": "sgVcUjUhB9Hwz6YujZmgP",
+    "cls": "3.A",
+    "members": "Klára Haiduková, Adéla Pálenská, Miriam Jurková, Eliška Dvořáková",
+    "name": "Skupina 1"
+   },
+   {
+    "id": "76B7zVMkDyQD2yGzPqFC2S",
+    "cls": "3.A",
+    "members": "Šárka Trojanová, Ellen Zítková, Natálie Čuhlová",
+    "name": "Skupina 2"
+   },
+   {
+    "id": "64xoR77K0oMWbDPupkwI3f",
+    "cls": "3.A",
+    "members": "Karolína D., Vojtěch P., Jan H., Michael K.",
+    "name": "Skupina 3"
+   },
+   {
+    "id": "4qCc3IHE91lLOxZkB4eNz2",
+    "cls": "3.A",
+    "members": "Viktorie Toufarová, Karolína Jelínková, Nikol Kolářová, Tereza Doležalová",
+    "name": "Skupina 4"
+   },
+   {
+    "id": "2h3B5RJstZ5siJmBHErBM9",
+    "cls": "3.A",
+    "members": "Jiří Dokulil, Tomáš Bloudek",
+    "name": "Skupina 5"
+   }
+  ]
+ },
+ {
+  "cls": "7.O",
+  "groups": [
+   {
+    "id": "61S5AJrQmc4fkFlkwnrTFY",
+    "cls": "7.O",
+    "members": "Pan Vinopal, Pan Veselý, Pan Musil, Paní Lukeš",
+    "name": "Skupina 1"
+   },
+   {
+    "id": "5RZRUzKFTVOTclsuxtnr3r",
+    "cls": "7.O",
+    "members": "Eliška Hemzová, Veronika Pokorná, Ema Škorpíková, Lenka Sedmidubská",
+    "name": "Skupina 2"
+   },
+   {
+    "id": "7lozVX9Dfub3OuZHWYRZ0g",
+    "cls": "7.O",
+    "members": "Alena Pohlová, Ema Ptáčková",
+    "name": "Skupina 3"
+   },
+   {
+    "id": "1NoESTuCRYuO6oZYLtwT6Q",
+    "cls": "7.O",
+    "members": "Roman Pohanka",
+    "name": "Skupina 4"
+   },
+   {
+    "id": "2OTREJvfoMC9F1ltEJi3N1",
+    "cls": "7.O",
+    "members": "Jan Šebesta, Ondřej Pavlis, Matěj Šotek",
+    "name": "Skupina 5"
+   },
+   {
+    "id": "3Pn1mBNWgPv8GxzVV41cVa",
+    "cls": "7.O",
+    "members": "Veronika Bartošová, Soňa Hromádková, Ester Bláhová",
+    "name": "Skupina 6"
+   },
+   {
+    "id": "3VnkCHq6fps0yclMM9B5Fv",
+    "cls": "7.O",
+    "members": "Tomáš Krška, Matyáš Laštovička, Jan Krajíc, Petr Filipenský",
+    "name": "Skupina 7"
+   },
+   {
+    "id": "35ElTnPFAp8pl2ndOd7MKf",
+    "cls": "7.O",
+    "members": "Drdla, Fišer, (Libra)",
+    "name": "Skupina 8"
+   },
+   {
+    "id": "422YhRFx2DshzUAzhEFffr",
+    "cls": "7.O",
+    "members": "Eliška Krupičková, Pavla Krupičková, Kateřina Baďurová",
+    "name": "Skupina 9"
+   }
+  ]
+ }
+];
+
+const GAME_URL = "pribeh.html?prezentace=true";
+const embedUrl = id => `https://insightmaker.com/insight/${id}/embed?topBar=1&sideBar=1&zoom=1`;
+
+const params = new URLSearchParams(location.search);
+const IDLE_MS = (Number(params.get("necinnost")) || 300) * 1000;  // ?necinnost=20 pro test (sekundy)
+const PROMPT_S = Math.min(30, Math.floor(IDLE_MS / 2000));
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let view = "home", currentClass = 0, currentModel = null;
+
+function show(v) {
+  view = v;
+  ["home", "game", "models"].forEach(id => $(id).hidden = id !== v);
+}
+
+function goHome() {
+  hideIdle();
+  $("game-frame").src = "about:blank";
+  $("model-frame").src = "about:blank";
+  $("model-frame").hidden = true; $("hint").hidden = true; $("empty").hidden = false;
+  currentModel = null; currentClass = 0;
+  renderModels();
+  show("home");
+}
+
+function openGame() {
+  $("game-frame").src = GAME_URL;
+  show("game");
+}
+
+function renderModels() {
+  $("tabs").innerHTML = CLASSES.map((c, i) =>
+    `<button class="tab" role="tab" aria-selected="${i === currentClass}" data-i="${i}">${esc(c.cls)}</button>`).join("");
+  const groups = CLASSES[currentClass] ? CLASSES[currentClass].groups : [];
+  $("groups").innerHTML = groups.map(g =>
+    `<button class="group" data-id="${esc(g.id)}" aria-current="${currentModel && currentModel.id === g.id}">
+       <b>${esc(g.name)}</b><span>${esc(g.members)}</span></button>`).join("");
+}
+
+function openModel(g) {
+  currentModel = g;
+  $("model-frame").src = embedUrl(g.id);
+  $("model-frame").hidden = false; $("empty").hidden = true; $("hint").hidden = false;
+  $("who").innerHTML = `<b>${esc(CLASSES[currentClass].cls)} · ${esc(g.name)}</b>${esc(g.members)}`;
+  renderModels();
+}
+
+$("tabs").addEventListener("click", e => {
+  const b = e.target.closest(".tab"); if (!b) return;
+  currentClass = +b.dataset.i; renderModels(); $("groups").scrollTop = 0;
+});
+$("groups").addEventListener("click", e => {
+  const b = e.target.closest(".group"); if (!b) return;
+  const g = CLASSES[currentClass].groups.find(x => x.id === b.dataset.id);
+  if (g) openModel(g);
+});
+$("model-reload").addEventListener("click", () => currentModel && openModel(currentModel));
+$("go-game").addEventListener("click", openGame);
+$("go-models").addEventListener("click", () => { renderModels(); show("models"); });
+$("game-restart").addEventListener("click", openGame);
+document.querySelectorAll("[data-home]").forEach(b => b.addEventListener("click", goHome));
+document.addEventListener("contextmenu", e => e.preventDefault());
+
+const total = CLASSES.reduce((n, c) => n + c.groups.length, 0);
+if (total) $("models-count").textContent = `${total} simulací ze ${CLASSES.length} tříd. Vyzkoušej, jak by se samizdat šířil za jiných podmínek.`;
+
+/* ---------- Nečinnost ----------
+   Dotyky v naší stránce a ve hře (stejný web) se počítají přímo.
+   Dotyky uvnitř modelu z InsightMakeru (jiný web) prohlížeč stránce neprozradí,
+   proto se po 5 minutách bez zjištěné aktivity nejdřív zeptáme a teprve pak se vrátíme na úvod. */
+let last = Date.now(), promptLeft = 0, promptTimer = null;
+const activity = () => { last = Date.now(); };
+["pointerdown", "keydown", "wheel", "touchstart"].forEach(ev =>
+  window.addEventListener(ev, activity, { capture: true, passive: true }));
+window.addEventListener("blur", () => { if (document.activeElement && document.activeElement.tagName === "IFRAME") activity(); });
+
+$("game-frame").addEventListener("load", () => {
+  try {
+    const w = $("game-frame").contentWindow;
+    ["pointerdown", "keydown", "wheel", "touchstart", "scroll"].forEach(ev =>
+      w.addEventListener(ev, activity, { capture: true, passive: true }));
+  } catch (e) { /* jiný původ – spolehneme se na výzvu */ }
+});
+
+function showIdle() {
+  promptLeft = PROMPT_S; $("idle-n").textContent = promptLeft; $("idle").hidden = false;
+  promptTimer = setInterval(() => {
+    promptLeft--; $("idle-n").textContent = Math.max(promptLeft, 0);
+    if (promptLeft <= 0) goHome();
+  }, 1000);
+}
+function hideIdle() {
+  clearInterval(promptTimer); promptTimer = null; $("idle").hidden = true; activity();
+}
+$("idle").addEventListener("pointerdown", e => { e.stopPropagation(); hideIdle(); });
+
+setInterval(() => {
+  if (view === "home" || promptTimer) return;
+  // výzva se ukáže 30 s před limitem, takže bez reakce se na úvod vrátí přesně po 5 minutách
+  if (Date.now() - last > IDLE_MS - PROMPT_S * 1000) showIdle();
+}, 1000);
+
+renderModels();
+</script>
+</body>
+</html>
